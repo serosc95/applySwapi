@@ -75,9 +75,27 @@ const watchDB = async () => {
   console.table(people);
 }
 
+const getPeople = async () => {
+  const people = await db.swPeople.findAll({
+    raw: true,
+  });
+
+  return people;
+}
+
+const getPlanets = async () => {
+  const planets = await db.swPlanet.findAll({
+    raw: true,
+  });
+
+  return planets;
+}
+
 db.initDB = initDB;
 db.populateDB = populateDB;
 db.watchDB = watchDB;
 db.deleteDB = deleteDB;
+db.getPeople = getPeople;
+db.getPlanets = getPlanets;
 
 module.exports = db;
