@@ -39,7 +39,21 @@ const applySwapiEndpoints = (server, app) => {
     });
 
     server.get('/hfswapi/getPlanet/:id', async (req, res) => {
-        res.sendStatus(501);
+        try {
+            const id = req.params.id;
+            let data = await app.planet.planetFactory(id);
+            if (!data){
+                const response_planet = await app.swapiFunctions.genericRequest(`https://swapi.dev/api/planets/${id}`, 'GET', null, false);
+                
+                data = {
+                    "name": response_planet.name,
+                    "gravity": parseInt(response_planet.gravity.split()[0])
+                }
+            }
+            res.send(data); 
+        } catch (error) {
+            res.sendStatus(501);
+        }
     });
 
     server.get('/hfswapi/getWeightOnPlanetRandom', async (req, res) => {
