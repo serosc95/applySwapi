@@ -57,7 +57,45 @@ const applySwapiEndpoints = (server, app) => {
     });
 
     server.get('/hfswapi/getWeightOnPlanetRandom', async (req, res) => {
-        res.sendStatus(501);
+        try {
+            const min = 1;
+            const max = 83;
+            const id = (Math.floor(Math.random() * (max - min + 1)) + min).toString();
+
+            let data_people = await app.people.peopleFactory(id);
+            if (!data_people){
+                const response_people = await app.swapiFunctions.genericRequest(`https://swapi.dev/api/people/${id}`, 'GET', null, false);
+                
+                const homeworldId = response_people.homeworld.split("/")[response_people.homeworld.split("/").length - 2];
+                
+                data_people = {
+                    "name": response_people.name,
+                    "mass": parseInt(response_people.mass),
+                    "homeworldId": homeworldId
+                }
+            }
+
+            let data_planet = await app.planet.planetFactory(data_people.homeworldId);
+            if (!data_planet){
+                const response_planet = await app.swapiFunctions.genericRequest(`https://swapi.dev/api/planets/${data_people.homeworldId}`, 'GET', null, false);
+                
+                data_planet = {
+                    "name": response_planet.name,
+                    "gravity": parseInt(response_planet.gravity.split()[0])
+                }
+            }
+
+            const data = {
+                "name": data_people.name,
+                "nameWorld": data_planet.name,
+                "mass": data_people.mass,
+                "gravity": data_planet.gravity,
+                "peso": data_people.mass * data_planet.gravity
+            }
+            res.send(data); 
+        } catch (error) {
+            res.sendStatus(501);
+        }
     });
 
     server.get('/hfswapi/getLogs',async (req, res) => {
