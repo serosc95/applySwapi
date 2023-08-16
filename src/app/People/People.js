@@ -8,8 +8,7 @@ class People {
     }
 
     async init(){
-        const people = await db.getPeople();
-        const personId = people.filter((person) => person.id == this.id)[0];
+        const personId = await db.swPeople.findByPk(this.id);
         if (!personId){
             return 0;
         }

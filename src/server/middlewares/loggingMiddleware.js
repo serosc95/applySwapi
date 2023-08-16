@@ -4,7 +4,13 @@ const loggingMiddleware = (db) =>
         const headers = JSON.stringify(req.headers);
         const originalUrl = req.originalUrl;
 
-        await db.setLoggingDB(originalUrl, headers, ip);
+        await db.logging.create(
+            {
+                action: originalUrl,
+                header: headers,
+                ip: ip
+            }
+        );
 
         next();
     }

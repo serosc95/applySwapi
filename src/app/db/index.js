@@ -53,16 +53,6 @@ const populateDB = async () => {
   ]);
 }
 
-const setLoggingDB = async (url, headers, ip) => {
-  await db.logging.create(
-    {
-      action: url,
-      header: headers,
-      ip: ip
-    }
-  );
-}
-
 const deleteDB = async () => {
   await db.swPeople.drop();
   await db.swPlanet.drop();
@@ -78,42 +68,16 @@ const watchDB = async () => {
     raw: true,
   });
 
-  const logging = await db.logging.findAll({
-    raw: true,
-  });
-
   console.log("============= swPlanet =============");
   console.table(planets);
   console.log("\n");
   console.log("============= swPeople =============");
   console.table(people);
-  console.log("\n");
-  console.log("============= logging =============");
-  console.table(logging);
-}
-
-const getPeople = async () => {
-  const people = await db.swPeople.findAll({
-    raw: true,
-  });
-
-  return people;
-}
-
-const getPlanets = async () => {
-  const planets = await db.swPlanet.findAll({
-    raw: true,
-  });
-
-  return planets;
 }
 
 db.initDB = initDB;
 db.populateDB = populateDB;
 db.watchDB = watchDB;
 db.deleteDB = deleteDB;
-db.getPeople = getPeople;
-db.getPlanets = getPlanets;
-db.setLoggingDB = setLoggingDB;
 
 module.exports = db;
