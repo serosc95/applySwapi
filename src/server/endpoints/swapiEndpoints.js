@@ -27,18 +27,37 @@ const applySwapiEndpoints = (server, app) => {
     server.get('/hfswapi/getPeople/:id', async (req, res) => {
         try {
             const id = req.params.id;
-            let data = await app.people.peopleFactory(id);
-            if (!data){
-                const response_people = await app.swapiFunctions.genericRequest(`https://swapi.dev/api/people/${id}`, 'GET', null, false);
+            const isWookieeFormat = _isWookieeFormat(req);
 
-                const homeworldId = response_people.homeworld.split("/")[response_people.homeworld.split("/").length - 2];
-                const response_planet = await app.swapiFunctions.genericRequest(`https://swapi.dev/api/planets/${homeworldId}`, 'GET', null, false);
+            let data = await app.people.peopleFactory(id);
+            
+            if (isWookieeFormat){
+
+                const responsePeopleFormat = await app.swapiFunctions.genericRequest(`https://swapi.dev/api/people/${id}/?format=wookiee`, 'GET', null, false);
+                
+                const homeworldId = responsePeopleFormat.acooscwoohoorcanwa.split("/")[responsePeopleFormat.acooscwoohoorcanwa.split("/").length - 2];
+                const responsePlanetFormat = await app.swapiFunctions.genericRequest(`https://swapi.dev/api/planets/${homeworldId}/?format=wookiee`, 'GET', null, false);
                 
                 data = {
-                    "name": response_people.name,
-                    "mass": isNaN(parseInt(response_people.mass)) ? "unknown" : parseInt(response_people.mass),
-                    "height": isNaN(parseInt(response_people.height)) ? "unknown" : parseInt(response_people.height),
-                    "homeworldName": response_planet.name,
+                    "name": responsePeopleFormat.whrascwo,
+                    "mass": isNaN(parseInt(responsePeopleFormat.scracc)) ? "unknown" : parseInt(responsePeopleFormat.scracc),
+                    "height": isNaN(parseInt(responsePeopleFormat.acwoahrracao)) ? "unknown" : parseInt(responsePeopleFormat.acwoahrracao),
+                    "homeworldName": responsePlanetFormat.whrascwo,
+                    "homeworldId": homeworldId
+                }
+            }
+            
+            if (!data && !isWookieeFormat){
+                const responsePeople = await app.swapiFunctions.genericRequest(`https://swapi.dev/api/people/${id}`, 'GET', null, false);
+
+                const homeworldId = responsePeople.homeworld.split("/")[responsePeople.homeworld.split("/").length - 2];
+                const responsePlanet = await app.swapiFunctions.genericRequest(`https://swapi.dev/api/planets/${homeworldId}`, 'GET', null, false);
+                
+                data = {
+                    "name": responsePeople.name,
+                    "mass": isNaN(parseInt(responsePeople.mass)) ? "unknown" : parseInt(responsePeople.mass),
+                    "height": isNaN(parseInt(responsePeople.height)) ? "unknown" : parseInt(responsePeople.height),
+                    "homeworldName": responsePlanet.name,
                     "homeworldId": homeworldId
                 }
             }
@@ -53,11 +72,11 @@ const applySwapiEndpoints = (server, app) => {
             const id = req.params.id;
             let data = await app.planet.planetFactory(id);
             if (!data){
-                const response_planet = await app.swapiFunctions.genericRequest(`https://swapi.dev/api/planets/${id}`, 'GET', null, false);
+                const responsePlanet = await app.swapiFunctions.genericRequest(`https://swapi.dev/api/planets/${id}`, 'GET', null, false);
                 
                 data = {
-                    "name": response_planet.name,
-                    "gravity": isNaN(parseInt(response_planet.gravity.split()[0])) ? "unknown" : parseInt(response_planet.gravity.split()[0]),
+                    "name": responsePlanet.name,
+                    "gravity": isNaN(parseInt(responsePlanet.gravity.split()[0])) ? "unknown" : parseInt(responsePlanet.gravity.split()[0]),
                 }
             }
             res.send(data); 
@@ -68,42 +87,42 @@ const applySwapiEndpoints = (server, app) => {
 
     server.get('/hfswapi/getWeightOnPlanetRandom', async (req, res) => {
         try {
-            const id_people = getNumberRandom(1, 83, 17);
-            const id_planet = getNumberRandom(1, 60);
+            const idPeople = getNumberRandom(1, 83, 17);
+            const idPlanet = getNumberRandom(1, 60);
 
-            let data_people = await app.people.peopleFactory(id_people);
-            if (!data_people){
-                const response_people = await app.swapiFunctions.genericRequest(`https://swapi.dev/api/people/${id_people}`, 'GET', null, false);
+            let dataPeople = await app.people.peopleFactory(idPeople);
+            if (!dataPeople){
+                const responsePeople = await app.swapiFunctions.genericRequest(`https://swapi.dev/api/people/${idPeople}`, 'GET', null, false);
                 
-                const homeworldId = response_people.homeworld.split("/")[response_people.homeworld.split("/").length - 2];
+                const homeworldId = responsePeople.homeworld.split("/")[responsePeople.homeworld.split("/").length - 2];
                 
-                data_people = {
-                    "name": response_people.name,
-                    "mass": isNaN(parseInt(response_people.mass)) ? "unknown" : parseInt(response_people.mass),
+                dataPeople = {
+                    "name": responsePeople.name,
+                    "mass": isNaN(parseInt(responsePeople.mass)) ? "unknown" : parseInt(responsePeople.mass),
                     "homeworldId": homeworldId
                 }
             }
 
-            if (data_people.homeworldId == id_planet){
+            if (dataPeople.homeworldId == idPlanet){
                 throw new Error('Se esta calculando el peso del personaje en su planeta natal');
             }
 
-            let data_planet = await app.planet.planetFactory(id_planet);
-            if (!data_planet){
-                const response_planet = await app.swapiFunctions.genericRequest(`https://swapi.dev/api/planets/${id_planet}`, 'GET', null, false);
+            let dataPlanet = await app.planet.planetFactory(idPlanet);
+            if (!dataPlanet){
+                const responsePlanet = await app.swapiFunctions.genericRequest(`https://swapi.dev/api/planets/${idPlanet}`, 'GET', null, false);
                 
-                data_planet = {
-                    "name": response_planet.name,
-                    "gravity": isNaN(parseInt(response_planet.gravity.split()[0])) ? "unknown" : parseInt(response_planet.gravity.split()[0]),
+                dataPlanet = {
+                    "name": responsePlanet.name,
+                    "gravity": isNaN(parseInt(responsePlanet.gravity.split()[0])) ? "unknown" : parseInt(responsePlanet.gravity.split()[0]),
                 }
             }
             
             const data = {
-                "name": data_people.name,
-                "nameWorld": data_planet.name,
-                "mass": data_people.mass,
-                "gravity": data_planet.gravity,
-                "peso": typeof data_people.mass === "string" || typeof data_people.gravity === "string" ? "unknown" : data_people.mass * data_planet.gravity
+                "name": dataPeople.name,
+                "nameWorld": dataPlanet.name,
+                "mass": dataPeople.mass,
+                "gravity": dataPlanet.gravity,
+                "peso": typeof dataPeople.mass === "string" || typeof dataPeople.gravity === "string" ? "unknown" : dataPeople.mass * dataPlanet.gravity
             }
             res.send(data); 
         } catch (error) {
