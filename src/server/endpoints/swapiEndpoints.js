@@ -6,6 +6,16 @@ const _isWookieeFormat = (req) => {
     return false;
 }
 
+const getNumberRandom = (min, max, except = 0) => {
+    let randomNumber;
+    
+    do {
+      randomNumber = Math.floor(Math.random() * max) + min;
+    } while (randomNumber === 0 || randomNumber === except);
+    
+    return randomNumber.toString();
+}
+
 
 const applySwapiEndpoints = (server, app) => {
 
@@ -26,8 +36,8 @@ const applySwapiEndpoints = (server, app) => {
                 
                 data = {
                     "name": response_people.name,
-                    "mass": parseInt(response_people.mass),
-                    "height": parseInt(response_people.height),
+                    "mass": isNaN(parseInt(response_people.mass)) ? "unknown" : parseInt(response_people.mass),
+                    "height": isNaN(parseInt(response_people.height)) ? "unknown" : parseInt(response_people.height),
                     "homeworldName": response_planet.name,
                     "homeworldId": homeworldId
                 }
@@ -47,7 +57,7 @@ const applySwapiEndpoints = (server, app) => {
                 
                 data = {
                     "name": response_planet.name,
-                    "gravity": parseInt(response_planet.gravity.split()[0])
+                    "gravity": isNaN(parseInt(response_planet.gravity.split()[0])) ? "unknown" : parseInt(response_planet.gravity.split()[0]),
                 }
             }
             res.send(data); 
@@ -58,39 +68,42 @@ const applySwapiEndpoints = (server, app) => {
 
     server.get('/hfswapi/getWeightOnPlanetRandom', async (req, res) => {
         try {
-            const min = 1;
-            const max = 83;
-            const id = (Math.floor(Math.random() * (max - min + 1)) + min).toString();
+            const id_people = getNumberRandom(1, 83, 17);
+            const id_planet = getNumberRandom(1, 60);
 
-            let data_people = await app.people.peopleFactory(id);
+            let data_people = await app.people.peopleFactory(id_people);
             if (!data_people){
-                const response_people = await app.swapiFunctions.genericRequest(`https://swapi.dev/api/people/${id}`, 'GET', null, false);
+                const response_people = await app.swapiFunctions.genericRequest(`https://swapi.dev/api/people/${id_people}`, 'GET', null, false);
                 
                 const homeworldId = response_people.homeworld.split("/")[response_people.homeworld.split("/").length - 2];
                 
                 data_people = {
                     "name": response_people.name,
-                    "mass": parseInt(response_people.mass),
+                    "mass": isNaN(parseInt(response_people.mass)) ? "unknown" : parseInt(response_people.mass),
                     "homeworldId": homeworldId
                 }
             }
 
-            let data_planet = await app.planet.planetFactory(data_people.homeworldId);
+            if (data_people.homeworldId == id_planet){
+                throw new Error('Se esta calculando el peso del personaje en su planeta natal');
+            }
+
+            let data_planet = await app.planet.planetFactory(id_planet);
             if (!data_planet){
-                const response_planet = await app.swapiFunctions.genericRequest(`https://swapi.dev/api/planets/${data_people.homeworldId}`, 'GET', null, false);
+                const response_planet = await app.swapiFunctions.genericRequest(`https://swapi.dev/api/planets/${id_planet}`, 'GET', null, false);
                 
                 data_planet = {
                     "name": response_planet.name,
-                    "gravity": parseInt(response_planet.gravity.split()[0])
+                    "gravity": isNaN(parseInt(response_planet.gravity.split()[0])) ? "unknown" : parseInt(response_planet.gravity.split()[0]),
                 }
             }
-
+            
             const data = {
                 "name": data_people.name,
                 "nameWorld": data_planet.name,
                 "mass": data_people.mass,
                 "gravity": data_planet.gravity,
-                "peso": data_people.mass * data_planet.gravity
+                "peso": typeof data_people.mass === "string" || typeof data_people.gravity === "string" ? "unknown" : data_people.mass * data_planet.gravity
             }
             res.send(data); 
         } catch (error) {
